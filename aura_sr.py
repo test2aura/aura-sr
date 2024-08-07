@@ -826,6 +826,51 @@ class AuraSR:
         return model
 
     @torch.no_grad()
+    def upscale_2x(self, image: Image.Image, max_batch_size=8) -> Image.Image:
+        """
+        Custom function. Upscale an input image by 2x using the upscaler.
+    
+        Args:
+        image (PIL.Image.Image): The input image to be upscaled.
+        max_batch_size (int): The maximum batch size for processing tiles.
+    
+        Returns:
+        PIL.Image.Image: The upscaled image.
+        """
+        tensor_transform = transforms.ToTensor()
+        device = self.upsampler.device
+    
+        image_tensor = tensor_transform(image).unsqueeze(0)
+        _, _, h, w = image_tensor.shape
+        pad_h = (self.input_image_size - h % self.input_image_size) % self.input_image_size
+        pad_w = (self.input_image_size - w % self.input_image_size) % self.input_image_size
+    
+        # Pad the image
+        image_tensor = torch.nn.functional.pad(image_tensor, (0, pad_w, 0, pad_h), mode='reflect').squeeze(0)
+        tiles, h_chunks, w_chunks = tile_image(image_tensor, self.input_image_size)
+    
+        # Batch processing of tiles
+        num_tiles = len(tiles)
+        batches = [tiles[i:i + max_batch_size] for i in range(0, num_tiles, max_batch_size)]
+        reconstructed_tiles = []
+    
+        for batch in batches:
+            model_input = torch.stack(batch).to(device)
+            generator_output = self.upsampler(
+                lowres_image=model_input,
+                noise=torch.randn(model_input.shape[0], 128, device=device)
+            )
+            reconstructed_tiles.extend(list(generator_output.clamp_(0, 1).detach().cpu()))
+    
+        # Merge tiles and unpad the image
+        merged_tensor = merge_tiles(reconstructed_tiles, h_chunks, w_chunks, self.input_image_size * 2)
+        unpadded = merged_tensor[:, :h * 2, :w * 2]
+
+        to_pil = transforms.ToPILImage()
+        return to_pil(unpadded)
+    
+
+    @torch.no_grad()
     def upscale_4x(self, image: Image.Image, max_batch_size=8) -> Image.Image:
         tensor_transform = transforms.ToTensor()
         device = self.upsampler.device
