@@ -713,11 +713,15 @@ def tile_image(image, chunk_size=64):
     c, h, w = image.shape
     h_chunks = ceil(h / chunk_size)
     w_chunks = ceil(w / chunk_size)
+    print("chunk_size:", chunk_size)
+    print("h_chunks:", h_chunks)
+    print("w_chunks:", w_chunks)
     tiles = []
     for i in range(h_chunks):
         for j in range(w_chunks):
             tile = image[:, i * chunk_size:(i + 1) * chunk_size, j * chunk_size:(j + 1) * chunk_size]
             tiles.append(tile)
+    print(len(tiles))
     return tiles, h_chunks, w_chunks
 
 # This helps create a checkboard pattern with some edge blending
