@@ -2,10 +2,10 @@ from setuptools import setup
 
 
 setup(
-    name="aura-sr",
+    name="aura-sr-custom",
     version="0.0.4",
-    description="GAN-based Super-Resolution for AI generated images, based on the GigaGAN architecture.",
-    py_modules=["aura_sr"],
+    description="Custom GAN-based Super-Resolution for AI generated images, based on the GigaGAN architecture.",
+    py_modules=["aura_sr_custom"]
     install_requires=[
         "torch>=2.0",
         "torchvision",
