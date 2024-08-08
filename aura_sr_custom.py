@@ -756,6 +756,12 @@ def merge_tiles(tiles, h_chunks, w_chunks, chunk_size=64):
     h = h_chunks * chunk_size
     w = w_chunks * chunk_size
 
+    print("merge_tiles chunk_size:", chunk_size)
+    
+    print("merge_tiles c:", c)
+    print("merge_tiles h:", h)
+    print("merge_tiles w:", w)
+
     # Create an empty tensor to hold the merged image
     merged = torch.zeros((c, h, w), dtype=tiles[0].dtype)
 
@@ -851,7 +857,7 @@ class AuraSR:
     
         # Pad the image
         image_tensor = torch.nn.functional.pad(image_tensor, (0, pad_w, 0, pad_h), mode='reflect').squeeze(0)
-        tiles, h_chunks, w_chunks = tile_image(image_tensor, self.input_image_size)
+        tiles, h_chunks, w_chunks = tile_image(image_tensor, self.input_image_size, chunk_size=32)
     
         # Batch processing of tiles
         num_tiles = len(tiles)
@@ -867,7 +873,7 @@ class AuraSR:
             reconstructed_tiles.extend(list(generator_output.clamp_(0, 1).detach().cpu()))
     
         # Merge tiles and unpad the image
-        merged_tensor = merge_tiles(reconstructed_tiles, h_chunks, w_chunks, self.input_image_size * 2)
+        merged_tensor = merge_tiles(reconstructed_tiles, h_chunks, w_chunks, self.input_image_size * 2, chunk_size=32)
         unpadded = merged_tensor[:, :h * 2, :w * 2]
 
         to_pil = transforms.ToPILImage()
