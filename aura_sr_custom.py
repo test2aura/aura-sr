@@ -857,7 +857,7 @@ class AuraSR:
     
         # Pad the image
         image_tensor = torch.nn.functional.pad(image_tensor, (0, pad_w, 0, pad_h), mode='reflect').squeeze(0)
-        tiles, h_chunks, w_chunks = tile_image(image_tensor, self.input_image_size / 2)
+        tiles, h_chunks, w_chunks = tile_image(image_tensor, int(self.input_image_size / 2))
     
         # Batch processing of tiles
         num_tiles = len(tiles)
