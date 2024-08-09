@@ -721,7 +721,7 @@ def tile_image(image, chunk_size=64):
         for j in range(w_chunks):
             tile = image[:, i * chunk_size:(i + 1) * chunk_size, j * chunk_size:(j + 1) * chunk_size]
             tiles.append(tile)
-    print(len(tiles))
+    print("num tiles", len(tiles))
     return tiles, h_chunks, w_chunks
 
 # This helps create a checkboard pattern with some edge blending
@@ -857,7 +857,7 @@ class AuraSR:
     
         # Pad the image
         image_tensor = torch.nn.functional.pad(image_tensor, (0, pad_w, 0, pad_h), mode='reflect').squeeze(0)
-        tiles, h_chunks, w_chunks = tile_image(image_tensor, chunk_size=32)
+        tiles, h_chunks, w_chunks = tile_image(image_tensor, self.input_image_size / 2)
     
         # Batch processing of tiles
         num_tiles = len(tiles)
@@ -873,7 +873,7 @@ class AuraSR:
             reconstructed_tiles.extend(list(generator_output.clamp_(0, 1).detach().cpu()))
     
         # Merge tiles and unpad the image
-        merged_tensor = merge_tiles(reconstructed_tiles, h_chunks, w_chunks, chunk_size=32)
+        merged_tensor = merge_tiles(reconstructed_tiles, h_chunks, w_chunks, self.input_image_size)
         unpadded = merged_tensor[:, :h * 2, :w * 2]
 
         to_pil = transforms.ToPILImage()
